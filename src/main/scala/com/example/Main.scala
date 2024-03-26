@@ -41,15 +41,25 @@ object Main extends IOApp.Simple {
   }
 
   case class Cart(items: List[CartItem]) {
-
+    def fetchItem(title: String): CartItem = {
+      val sameItem: List[CartItem] = this.items.filter(_.item.map(_.title) == title)
+      if (sameItem.isEmpty) null
+      else sameItem.head
+    }
+    
     def addItem(title: String, qty: Int = 1) {
-      val sameItem: List[CartItem] = items.filter(_.item.map(_.title) == title)
-      if (sameItem.isEmpty) items :+ CartItem(decodeItem(title), qty)
-      else sameItem.head.qty += qty // if item already in cart, update qty
+      val selectedItem: CartItem = fetchItem(title)
+      if (selectedItem != null) selectedItem.updateQty(newQty = selectedItem.qty + qty)
+      else this.items :+ CartItem(decodeItem(title), qty)
+    }
+
+    def removeItem(title: String) {
+      val selectedItem: CartItem = fetchItem(title)
+      if (selectedItem != null) selectedItem.updateQty(0)
     }
 
     def printTotal(): IO[Unit] = {
-      items.traverse(i => i.receiptLine).map(println(_))
+      items.traverse(item => item.receiptLine).map(println(_))
     }
   }
 
